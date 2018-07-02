@@ -4,7 +4,7 @@
 ## 树莓派扩展板传感器库
 
 
-#硬件提供接口：
+# 硬件提供接口：
 + ADC：ADC1, ADC2, ADC3, ADC4, 
 + I2C:
 + UART:
@@ -13,14 +13,14 @@
 + I2S:
 
 
-#库安装：
+# 库安装：
 + LX终端,进入文件夹：输入 sudo sh ./install.sh
 
-#卸载：
+# 卸载：
 + LX终端,进入文件夹：输入 sudo sh ./uninstall.sh
 
 
-#示例：
+# 示例：
 + adcTest.py  ADC测试
 + adcControlServo.py  ADC显示,舵机测试
 + gpioTest.py   GPIO测试
