@@ -33,3 +33,4 @@ class ADC(object):
 		except Exception as e:
 		    print ("Error: Device address: 0x%2X" % self._address)
 		    print (e)
+		    time.sleep(0.01)

@@ -45,48 +45,64 @@ def software_reset(address=PCA9685_ADDRESS, **kwargs):
 class PWM(object):
 
     def __init__(self, address=PCA9685_ADDRESS, **kwargs):
-        self._address = address
-        self._bus = smbus.SMBus(1)
-        self.set_all_pwm(0, 0)
-        self._bus.write_byte_data(self._address, MODE2, OUTDRV)
-        self._bus.write_byte_data(self._address, MODE1, ALLCALL)
-        time.sleep(0.005)  # wait for oscillator
-        mode1 = self._bus.read_byte_data(self._address,MODE1)
-        mode1 = mode1 & ~SLEEP  # wake up (reset sleep)
-        self._bus.write_byte_data(self._address, MODE1, mode1)
-        time.sleep(0.005)  # wait for oscillator
+        try:
+            self._address = address
+            self._bus = smbus.SMBus(1)
+            self.set_all_pwm(0, 0)
+            self._bus.write_byte_data(self._address, MODE2, OUTDRV)
+            self._bus.write_byte_data(self._address, MODE1, ALLCALL)
+            time.sleep(0.005)  # wait for oscillator
+            mode1 = self._bus.read_byte_data(self._address,MODE1)
+            mode1 = mode1 & ~SLEEP  # wake up (reset sleep)
+            self._bus.write_byte_data(self._address, MODE1, mode1)
+            time.sleep(0.005)  # wait for oscillator
+        except (IOError):
+            print("IO Error")
+            time.sleep(0.01)
 
     def set_pwm_freq(self, freq_hz):
         #Set the PWM frequency to the provided value in hertz.
-        prescaleval = 25000000.0    # 25MHz
-        prescaleval /= 4096.0       # 12-bit
-        prescaleval /= float(freq_hz)
-        prescaleval -= 1.0
-        logger.debug('Setting PWM frequency to {0} Hz'.format(freq_hz))
-        logger.debug('Estimated pre-scale: {0}'.format(prescaleval))
-        prescale = int(math.floor(prescaleval + 0.5))
-        logger.debug('Final pre-scale: {0}'.format(prescale))
-        oldmode = self._bus.read_byte_data(self._address,MODE1)
-        newmode = (oldmode & 0x7F) | 0x10    # sleep
-        self._bus.write_byte_data(self._address, MODE1, newmode)
-        self._bus.write_byte_data(self._address, PRESCALE, prescale)
-        self._bus.write_byte_data(self._address, MODE1, oldmode)
-        time.sleep(0.005)
-        self._bus.write_byte_data(self._address, MODE1, oldmode | 0x80)
+        try:
+            prescaleval = 25000000.0    # 25MHz
+            prescaleval /= 4096.0       # 12-bit
+            prescaleval /= float(freq_hz)
+            prescaleval -= 1.0
+            logger.debug('Setting PWM frequency to {0} Hz'.format(freq_hz))
+            logger.debug('Estimated pre-scale: {0}'.format(prescaleval))
+            prescale = int(math.floor(prescaleval + 0.5))
+            logger.debug('Final pre-scale: {0}'.format(prescale))
+            oldmode = self._bus.read_byte_data(self._address,MODE1)
+            newmode = (oldmode & 0x7F) | 0x10    # sleep
+            self._bus.write_byte_data(self._address, MODE1, newmode)
+            self._bus.write_byte_data(self._address, PRESCALE, prescale)
+            self._bus.write_byte_data(self._address, MODE1, oldmode)
+            time.sleep(0.005)
+            self._bus.write_byte_data(self._address, MODE1, oldmode | 0x80)
+        except (IOError):
+            print("IO Error")
+            time.sleep(0.01)
 
     def set_pwm(self, channel, on, off):
         #Sets a single PWM channel.
-        self._bus.write_byte_data(self._address, LED0_ON_L+4*channel, on & 0xFF)
-        self._bus.write_byte_data(self._address, LED0_ON_H+4*channel, on >> 8)
-        self._bus.write_byte_data(self._address, LED0_OFF_L+4*channel, off & 0xFF)
-        self._bus.write_byte_data(self._address, LED0_OFF_H+4*channel, off >> 8)
+        try:
+            self._bus.write_byte_data(self._address, LED0_ON_L+4*channel, on & 0xFF)
+            self._bus.write_byte_data(self._address, LED0_ON_H+4*channel, on >> 8)
+            self._bus.write_byte_data(self._address, LED0_OFF_L+4*channel, off & 0xFF)
+            self._bus.write_byte_data(self._address, LED0_OFF_H+4*channel, off >> 8)
+        except (IOError):
+            print("IO Error")
+            time.sleep(0.01)
 
     def set_all_pwm(self, on, off):
         #Sets all PWM channels.
-        self._bus.write_byte_data(self._address, ALL_LED_ON_L, on & 0xFF)
-        self._bus.write_byte_data(self._address, ALL_LED_ON_H, on >> 8)
-        self._bus.write_byte_data(self._address, ALL_LED_OFF_L, off & 0xFF)
-        self._bus.write_byte_data(self._address, ALL_LED_OFF_H, off >> 8)
+        try:
+            self._bus.write_byte_data(self._address, ALL_LED_ON_L, on & 0xFF)
+            self._bus.write_byte_data(self._address, ALL_LED_ON_H, on >> 8)
+            self._bus.write_byte_data(self._address, ALL_LED_OFF_L, off & 0xFF)
+            self._bus.write_byte_data(self._address, ALL_LED_OFF_H, off >> 8)
+        except (IOError):
+            print("IO Error")
+            time.sleep(0.01)
 
     def constrain(self, val, min_val, max_val):
         if val < min_val:

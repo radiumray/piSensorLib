@@ -26,8 +26,12 @@ class LM75(object):
         return (temp * (9.0/5.0)) + 32.0
 
     def getTemp(self):
-        raw = self._bus.read_word_data(self._address, LM75_TEMP_REGISTER) & 0xFFFF
-        raw = ((raw << 8) & 0xFF00) + (raw >> 8)
+        try:
+            raw = self._bus.read_word_data(self._address, LM75_TEMP_REGISTER) & 0xFFFF
+            raw = ((raw << 8) & 0xFF00) + (raw >> 8)
+        except (IOError):
+            print("IO Error")
+            time.sleep(0.01)
         return self.regdata2float(raw)
         #return self.toFah(self.regdata2float(raw))
                                 
