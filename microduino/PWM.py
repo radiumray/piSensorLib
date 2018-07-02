@@ -100,5 +100,6 @@ class PWM(object):
 
     def servoTo(self, channel, degree):
         toDegree =self.constrain(degree, 0, 180)
-        toDegree = self.mapTo(toDegree, 0, 180 ,130, 600)
+        #toDegree = self.mapTo(toDegree, 0, 180 ,130, 600)
+        toDegree = self.mapTo(toDegree, 0, 180 ,82, 409)
         self.set_pwm(channel, 0, toDegree)
