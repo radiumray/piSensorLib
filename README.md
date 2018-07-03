@@ -27,8 +27,9 @@
 + lm75Test.py  LM75测试
 + servoTest.py  舵机测试
 + tempHumi.py   温湿度测试
-> + 彩灯控制:参见 https://learn.adafruit.com/neopixels-on-raspberry-pi/software
-+ 需要编译和安装 rpi_ws281x 库(只支持python2)
++ dotMatrixTest.py  点阵测试
+> 彩灯控制:参见 https://learn.adafruit.com/neopixels-on-raspberry-pi/software
+> 需要编译和安装 rpi_ws281x 库(只支持python2)
 
 ### 参考URL：
 https://www.sunfounder.com/learn/category/sensor-kit-v2-0-for-raspberry-pi-b-plus.html
