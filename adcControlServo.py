@@ -12,9 +12,9 @@ senVal=sensor.read(0)
 print ('AIN1 = ', senVal)
 
 while True:
-    for i in range(180):
+    for i in range(80,130,1):
         pwm.servoTo(0, i)
         time.sleep(0.01)
-    for i in range(180,0,-1):
+    for i in range(130,80,-1):
          pwm.servoTo(0, i)
          time.sleep(0.01)

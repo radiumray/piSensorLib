@@ -5,7 +5,7 @@ import logging
 import time
 import math
 import smbus
-
+import subprocess
 
 # Registers/etc:
 PCA9685_ADDRESS    = 0x41
@@ -31,38 +31,35 @@ ALLCALL            = 0x01
 INVRT              = 0x10
 OUTDRV             = 0x04
 
+servo_min = 150
+servo_max = 600
+ESC_min = 280
+ESC_max = 330
 
 logger = logging.getLogger(__name__)
 
-
-def software_reset(address=PCA9685_ADDRESS, **kwargs):
-    #Sends a software reset (SWRST) command to all servo drivers on the bus.
-    self._bus = smbus.SMBus(1)
-    self._address = address
-    self._bus.write_byte(address, 0x06)
-
-
 class PWM(object):
 
-    def __init__(self, address=PCA9685_ADDRESS, **kwargs):
+    def __init__(self, address=PCA9685_ADDRESS):
         try:
             self._address = address
             self._bus = smbus.SMBus(1)
-            self.set_all_pwm(0, 0)
-            self._bus.write_byte_data(self._address, MODE2, OUTDRV)
-            self._bus.write_byte_data(self._address, MODE1, ALLCALL)
-            time.sleep(0.005)  # wait for oscillator
-            mode1 = self._bus.read_byte_data(self._address,MODE1)
-            mode1 = mode1 & ~SLEEP  # wake up (reset sleep)
-            self._bus.write_byte_data(self._address, MODE1, mode1)
-            time.sleep(0.005)  # wait for oscillator
+            self.reset()
+            self.set_pwm_freq(50)
+            
         except (IOError):
+            subprocess.call(['i2cdetect', '-y', '1'])
             print("IO Error")
             time.sleep(0.01)
+            
+    def reset(self):
+        self._bus.write_byte_data(self._address, MODE1, RESTART)
+        time.sleep(0.01)
 
     def set_pwm_freq(self, freq_hz):
         #Set the PWM frequency to the provided value in hertz.
-        try:
+        try:	
+            freq_hz *=0.9
             prescaleval = 25000000.0    # 25MHz
             prescaleval /= 4096.0       # 12-bit
             prescaleval /= float(freq_hz)
@@ -76,23 +73,29 @@ class PWM(object):
             self._bus.write_byte_data(self._address, MODE1, newmode)
             self._bus.write_byte_data(self._address, PRESCALE, prescale)
             self._bus.write_byte_data(self._address, MODE1, oldmode)
-            time.sleep(0.005)
-            self._bus.write_byte_data(self._address, MODE1, oldmode | 0x80)
+            time.sleep(0.01)
+            self._bus.write_byte_data(self._address, MODE1, oldmode | 0xa0)
+            time.sleep(0.01)
         except (IOError):
+            subprocess.call(['i2cdetect', '-y', '1'])
             print("IO Error")
             time.sleep(0.01)
 
     def set_pwm(self, channel, on, off):
         #Sets a single PWM channel.
         try:
-            self._bus.write_byte_data(self._address, LED0_ON_L+4*channel, on & 0xFF)
-            self._bus.write_byte_data(self._address, LED0_ON_H+4*channel, on >> 8)
-            self._bus.write_byte_data(self._address, LED0_OFF_L+4*channel, off & 0xFF)
-            self._bus.write_byte_data(self._address, LED0_OFF_H+4*channel, off >> 8)
+            pwmData = []
+            pwmData.append(on)
+            pwmData.append(on>>8)
+            pwmData.append(off)
+            pwmData.append(off>>8)
+            self._bus.write_i2c_block_data(self._address,LED0_ON_L+4*channel, pwmData)
+            #time.sleep(0.01)
         except (IOError):
+            #subprocess.call(['i2cdetect', '-y', '1'])
             print("IO Error")
             time.sleep(0.01)
-
+    '''
     def set_all_pwm(self, on, off):
         #Sets all PWM channels.
         try:
@@ -100,10 +103,11 @@ class PWM(object):
             self._bus.write_byte_data(self._address, ALL_LED_ON_H, on >> 8)
             self._bus.write_byte_data(self._address, ALL_LED_OFF_L, off & 0xFF)
             self._bus.write_byte_data(self._address, ALL_LED_OFF_H, off >> 8)
+            time.sleep(0.01)
         except (IOError):
             print("IO Error")
             time.sleep(0.01)
-
+    '''
     def constrain(self, val, min_val, max_val):
         if val < min_val:
             return min_val
@@ -116,6 +120,11 @@ class PWM(object):
 
     def servoTo(self, channel, degree):
         toDegree =self.constrain(degree, 0, 180)
-        toDegree = self.mapTo(toDegree, 0, 180 ,130, 600)
-        #toDegree = self.mapTo(toDegree, 0, 180 ,82, 409)
+        toDegree = self.mapTo(toDegree, 0, 180 ,servo_min, servo_max)
         self.set_pwm(channel, 0, toDegree)
+        
+    def escControl(self, channel, escValue):
+        toESC =self.constrain(escValue, 1000, 2000)
+        toESC = self.mapTo(toESC, 1000, 2000 ,ESC_min, ESC_max)
+        self.set_pwm(channel, 0, toESC)
+
