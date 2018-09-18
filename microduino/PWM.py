@@ -31,10 +31,10 @@ ALLCALL            = 0x01
 INVRT              = 0x10
 OUTDRV             = 0x04
 
-servo_min = 150
-servo_max = 600
-ESC_min = 280
-ESC_max = 330
+servo_min = 102
+servo_max = 512
+ESC_min = 208
+ESC_max = 410
 
 logger = logging.getLogger(__name__)
 
