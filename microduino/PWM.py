@@ -33,7 +33,7 @@ OUTDRV             = 0x04
 
 servo_min = 102
 servo_max = 512
-ESC_min = 208
+ESC_min = 205
 ESC_max = 410
 
 logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ class PWM(object):
             self._bus.write_byte_data(self._address, MODE1, oldmode | 0xa0)
             time.sleep(0.01)
         except (IOError):
-            subprocess.call(['i2cdetect', '-y', '1'])
+            #subprocess.call(['i2cdetect', '-y', '1'])
             print("IO Error")
             time.sleep(0.01)
 
@@ -92,9 +92,10 @@ class PWM(object):
             self._bus.write_i2c_block_data(self._address,LED0_ON_L+4*channel, pwmData)
             #time.sleep(0.01)
         except (IOError):
-            #subprocess.call(['i2cdetect', '-y', '1'])
+            subprocess.call(['i2cdetect', '-y', '1'])
             print("IO Error")
-            time.sleep(0.01)
+            time.sleep(0.05)
+            self._bus.write_i2c_block_data(self._address,LED0_ON_L+4*channel, pwmData)
     '''
     def set_all_pwm(self, on, off):
         #Sets all PWM channels.
